@@ -1,0 +1,98 @@
+<!-- views/view.ejs -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>查看数据</title>
+    <link rel="stylesheet" href="/css/styles.css">
+    <script>
+        function confirmDelete(index) {
+            return confirm('确定要删除这条数据吗？');
+        }
+
+        function confirmViewUrl(index) {
+            return confirm('确定要查看这个网址吗？');
+        }
+
+        function confirmDeletePage() {
+            return confirm('确定要删除此页全部数据吗？\n删除后无法撤回，请谨慎操作！');
+        }
+
+        function confirmDeleteAll() {
+            return confirm('确定要删除已上传的全部数据吗？\n删除后无法撤回，请谨慎操作！');
+        }
+
+        function togglePagination() {
+            const allPages = document.querySelectorAll('.pagination a');
+            const dots = document.querySelector('.pagination span');
+            allPages.forEach(page => page.style.display = page.style.display === 'none' ? '' : 'none');
+            dots.style.display = allPages[0].style.display === 'none' ? '' : 'none';
+        }
+    </script>
+</head>
+<body>
+    <div class="container">
+        <h1>已上传数据</h1>
+        <!-- 搜索框 -->
+        <form action="/view" method="GET">
+            <input type="text" name="search" placeholder="搜索名称或网址" value="<%= search %>">
+            <button type="submit">搜索</button>
+        </form>
+        <!-- 数据表格 -->
+        <table>
+            <thead>
+                <tr>
+                    <th>序列号</th>
+                    <th>网址</th>
+                    <th>名称</th>
+                    <th>操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% data.forEach((item, index) => { %>
+                    <tr>
+                        <td><%= index + 1 %></td>
+                        <td><%= item.url %></td>
+                        <td><%= item.name %></td>
+                        <td>
+                            <a href="/delete/<%= index %>" onclick="return confirmDelete(<%= index %>)">删除</a>
+                            <a href="javascript:void(0);" onclick="if (confirmViewUrl(<%= index %>)) window.open('<%= item.url %>')">查看网址</a>
+                        </td>
+                    </tr>
+                <% }) %>
+            </tbody>
+        </table>
+        <!-- 分页按钮 -->
+        <div class="pagination">
+            <% if(page > 1) { %>
+                <a href="/view?page=<%= page - 1 %>&search=<%= search %>">上一页</a>
+            <% } %>
+            <% if(page > 3) { %>
+                <a href="/view?page=1&search=<%= search %>">1</a>
+                <span onclick="togglePagination()" style="cursor: pointer;">...</span>
+            <% } %>
+            <% for (let i = Math.max(1, page - 2); i <= Math.min(totalPages, page + 2); i++) { %>
+                <% if (i === page) { %>
+                    <span class="active-page"><%= i %></span>
+                <% } else { %>
+                    <a href="/view?page=<%= i %>&search=<%= search %>"><%= i %></a>
+                <% } %>
+            <% } %>
+            <% if(page < totalPages - 2) { %>
+                <span onclick="togglePagination()" style="cursor: pointer;">...</span>
+                <a href="/view?page=<%= totalPages %>&search=<%= search %>"><%= totalPages %></a>
+            <% } %>
+            <% if(data.length === 20 && page < totalPages) { %>
+                <a href="/view?page=<%= page + 1 %>&search=<%= search %>">下一页</a>
+            <% } %>
+        </div>
+        <!-- 删除当页数据和删除全部数据按钮 -->
+        <div class="delete-buttons">
+            <a href="/delete-page" onclick="return confirmDeletePage()">删除当页数据</a>
+            <a href="/delete-all" onclick="return confirmDeleteAll()">删除全部数据</a>
+        </div>
+        <a href="/upload">返回上传页面</a>
+    </div>
+</body>
+</html>
